@@ -1,5 +1,6 @@
 {
     "conventionalCommits.scopes": [
-        "Inicio proyecto"
+        "Inicio proyecto",
+        "Vistas"
     ]
 }
