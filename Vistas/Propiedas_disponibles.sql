@@ -1,6 +1,4 @@
 
-
-
 USE inmobiliaria_db;
 
 DROP VIEW IF EXISTS v_propiedades_disponibles;
