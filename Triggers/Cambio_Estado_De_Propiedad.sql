@@ -1,4 +1,9 @@
-
+-- ============================================================
+--  SISTEMA DE GESTIÓN INMOBILIARIA
+--  Trigger 1 de 2: Cambio de estado de una propiedad
+--  Motor: MySQL 8.0+
+--  Prerrequisito: modelo_fisico.sql
+-- ============================================================
 
 USE inmobiliaria_db;
 
@@ -14,6 +19,28 @@ BEGIN
     -- Solo actúa si el estado realmente cambió
     IF OLD.EstadoP_ID <> NEW.EstadoP_ID THEN
 
+        -- Variables locales para evitar subqueries problemáticas
+        -- MySQL no permite SELECT COUNT(*) sobre la misma tabla
+        -- que recibe el INSERT dentro de un trigger (Error 1064)
+        DECLARE v_audit_id    VARCHAR(10);
+        DECLARE v_desc_ant    VARCHAR(50);
+        DECLARE v_desc_new    VARCHAR(50);
+        DECLARE v_usuario     VARCHAR(10);
+
+        SET v_audit_id = CONCAT('AUD',
+                            RIGHT(UNIX_TIMESTAMP(NOW(6)), 5));
+
+        SELECT Descripcion INTO v_desc_ant
+        FROM   EstadoPropiedad WHERE EstadoP_ID = OLD.EstadoP_ID;
+
+        SELECT Descripcion INTO v_desc_new
+        FROM   EstadoPropiedad WHERE EstadoP_ID = NEW.EstadoP_ID;
+
+        SELECT Usuario_ID INTO v_usuario
+        FROM   UsuarioSistema LIMIT 1;
+
+        SET v_usuario = IFNULL(v_usuario, 'USR001');
+
         -- Registrar en AuditoriaPropiedad
         INSERT INTO AuditoriaPropiedad (
             Audit_ID,
@@ -25,26 +52,16 @@ BEGIN
             Fecha_Hora
         )
         VALUES (
-            CONCAT('AUD-',
-                   LPAD(
-                       (SELECT COUNT(*) + 1 FROM AuditoriaPropiedad),
-                   3, '0')),
+            v_audit_id,
             NEW.Propiedad_ID,
-            -- Descripción del estado anterior
-            (SELECT Descripcion FROM EstadoPropiedad
-             WHERE  EstadoP_ID = OLD.EstadoP_ID),
-            -- Descripción del estado nuevo
-            (SELECT Descripcion FROM EstadoPropiedad
-             WHERE  EstadoP_ID = NEW.EstadoP_ID),
+            v_desc_ant,
+            v_desc_new,
             CURDATE(),
-            -- Usuario de sistema activo (primer usuario encontrado si no hay sesión)
-            IFNULL(
-                (SELECT Usuario_ID FROM UsuarioSistema LIMIT 1),
-                'USR-01'
-            ),
+            v_usuario,
             NOW()
         );
 
+        -- Registrar en Logs_Cambios
         INSERT INTO Logs_Cambios (
             Fecha_Cambio,
             Nombre_Cambio,
@@ -58,12 +75,8 @@ BEGIN
             CONCAT(
                 'Propiedad: ', NEW.Propiedad_ID,
                 ' | Dirección: ', NEW.Direccion,
-                ' | Estado anterior: ',
-                    (SELECT Descripcion FROM EstadoPropiedad
-                     WHERE  EstadoP_ID = OLD.EstadoP_ID),
-                ' → Estado nuevo: ',
-                    (SELECT Descripcion FROM EstadoPropiedad
-                     WHERE  EstadoP_ID = NEW.EstadoP_ID)
+                ' | Estado anterior: ', v_desc_ant,
+                ' → Estado nuevo: ',    v_desc_new
             )
         );
 

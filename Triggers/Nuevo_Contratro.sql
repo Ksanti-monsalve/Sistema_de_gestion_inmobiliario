@@ -1,4 +1,9 @@
-
+-- ============================================================
+--  SISTEMA DE GESTIÓN INMOBILIARIA
+--  Trigger 2 de 2: Registro de un nuevo contrato
+--  Motor: MySQL 8.0+
+--  Prerrequisito: modelo_fisico.sql
+-- ============================================================
 
 USE inmobiliaria_db;
 
@@ -11,6 +16,10 @@ AFTER INSERT ON Contratos
 FOR EACH ROW
 BEGIN
 
+    -- Variable para el ID de auditoría
+    -- Se genera con UNIX_TIMESTAMP+microsegundos para evitar
+    -- el error 1064: MySQL no permite subquery SELECT sobre la
+    -- misma tabla que recibe el INSERT dentro de un trigger
     DECLARE v_audit_id  VARCHAR(10);
     DECLARE v_usuario   VARCHAR(10);
 
@@ -22,7 +31,7 @@ BEGIN
     FROM   UsuarioSistema
     LIMIT  1;
 
-    SET v_usuario = IFNULL(v_usuario, 'USR-01');
+    SET v_usuario = IFNULL(v_usuario, 'USR001');
 
     -- Registrar en AuditoriaContrato
     INSERT INTO AuditoriaContrato (
@@ -76,7 +85,10 @@ END$$
 
 DELIMITER ;
 
-
+-- ============================================================
+-- PRUEBA DEL TRIGGER
+-- Usa variables dinámicas para evitar errores por datos previos
+-- ============================================================
 
 -- Paso 0: Ver el estado actual de propiedades y contratos
 SELECT 'PROPIEDADES DISPONIBLES (EP-01)' AS info;
@@ -85,7 +97,9 @@ SELECT Propiedad_ID, Direccion FROM Propiedad WHERE EstadoP_ID = 'EP-01';
 SELECT 'CONTRATOS EXISTENTES' AS info;
 SELECT Contrato_ID FROM Contratos ORDER BY Contrato_ID;
 
-
+-- Paso 1: Insertar con ID y propiedad dinámica usando bloque DO
+-- Detecta automáticamente el siguiente ID libre y la primera
+-- propiedad disponible → funciona sin importar ejecuciones previas
 DROP PROCEDURE IF EXISTS _test_trg_nuevo_contrato;
 
 DELIMITER $$
@@ -145,7 +159,8 @@ BEGIN
 END$$
 DELIMITER ;
 
-
+-- Ejecutar la prueba
 CALL _test_trg_nuevo_contrato();
 
+-- Limpiar el procedure de prueba
 DROP PROCEDURE IF EXISTS _test_trg_nuevo_contrato;
