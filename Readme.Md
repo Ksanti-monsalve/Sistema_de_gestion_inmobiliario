@@ -568,9 +568,9 @@ Propiedad disponible: PROP-05 (Calle 9 #22-10, Apartamento, San Antonio, Cali)
 | ✅ Evento programado mensual | Completado |
 | ✅ Usuarios y roles | Completado |
 | ✅ Optimización e índices | Completado |
-| ⬜ SP registrar contrato de venta | Pendiente |
-| ⬜ SP eliminar / cancelar contrato | Pendiente |
-| ⬜ Procedimiento de cierre de mes | Pendiente |
+| ✅ SP registrar contrato de venta | Completado |
+| ✅ SP eliminar / cancelar contrato | Completado |
+| ✅ Procedimiento de cierre de mes | Completado |
 
 ---
 
