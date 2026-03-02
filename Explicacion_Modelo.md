@@ -5,6 +5,7 @@
 **Autor:** Santiago Monsalve  
 **Motor:** MySQL 8.0+  
 
+
 ---
 
 ## 📋 Tabla de Contenidos
