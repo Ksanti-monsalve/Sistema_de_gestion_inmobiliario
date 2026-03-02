@@ -4,14 +4,6 @@
 --  Motor: MySQL 8.0+
 --  Prerrequisito: modelo_fisico.sql
 -- ============================================================
---
---  CORRECCIÓN Error 1553:
---  MySQL crea automáticamente índices sobre columnas FK
---  (EstadoP_ID, TipoP_ID, Barrio_ID, Cliente_ID, etc.)
---  Esos índices NO se pueden eliminar mientras exista la FK.
---  SOLUCIÓN: Solo crear índices ADICIONALES que no sean FK.
---  Los índices FK ya están optimizando los JOINs.
--- ============================================================
 
 USE inmobiliaria_db;
 
